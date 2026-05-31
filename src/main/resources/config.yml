@@ -1,0 +1,22 @@
+# ToolWarn Configuration
+# Thresholds are in percentage of remaining durability (0.0 – 1.0)
+# Warning order: thresholds are evaluated from highest to lowest automatically.
+
+thresholds:
+  - percentage: 0.20
+    message: "&e⚠ &f{item} &eis getting worn down! &7({durability}/{max}, {percent}% left)"
+  - percentage: 0.10
+    message: "&c✖ &f{item} &cis nearly broken! &7({durability}/{max}, {percent}% left)"
+
+# Available placeholders in messages:
+#   {item}       - localized item name (e.g., "Diamond Pickaxe")
+#   {slot}       - equipment slot name (e.g., "CHEST", "HAND")
+#   {durability} - current remaining durability
+#   {max}        - max durability
+#   {percent}    - remaining percentage as integer (e.g., "10")
+
+# Sound played on warning (set to "" to disable)
+warning-sound: "ENTITY_EXPERIENCE_ORB_PICKUP"
+
+# Whether to also send an ActionBar message on top of the chat message
+send-actionbar: true

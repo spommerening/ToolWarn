@@ -1,0 +1,16 @@
+name: ToolWarn
+version: "1.0.0"
+main: io.github.toolwarn.ToolWarnPlugin
+api-version: "1.21"
+description: Warns players when equipped items fall below configurable durability thresholds.
+authors:
+  - YourName
+commands:
+  toolwarn:
+    description: ToolWarn admin commands
+    usage: /toolwarn <reload|status>
+    permission: toolwarn.admin
+permissions:
+  toolwarn.admin:
+    description: Allows use of /toolwarn admin commands
+    default: op
