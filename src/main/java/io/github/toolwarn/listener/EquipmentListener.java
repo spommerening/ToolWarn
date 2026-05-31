@@ -39,8 +39,18 @@ public class EquipmentListener implements Listener {
         if (!(event.getEntity() instanceof Player player)) return;
 
         event.getEquipmentChanges().forEach((slot, change) -> {
-            tracker.resetSlot(player.getUniqueId(), slot);
+            ItemStack oldItem = change.oldItem();
             ItemStack newItem = change.newItem();
+
+            // Only reset fired-threshold state when a genuinely different item enters the
+            // slot. Durability changes fire this event too (same material, lower damage),
+            // and resetting on every tick would re-arm thresholds continuously, causing spam.
+            boolean itemTypeChanged = oldItem == null || newItem == null
+                    || oldItem.getType() != newItem.getType();
+            if (itemTypeChanged) {
+                tracker.resetSlot(player.getUniqueId(), slot);
+            }
+
             if (newItem != null && !newItem.getType().isAir()) {
                 checkAndWarn(player, slot, newItem);
             }
@@ -93,7 +103,7 @@ public class EquipmentListener implements Listener {
         ItemMeta meta = item.getItemMeta();
         if (!(meta instanceof Damageable damageable)) return;
 
-        int max = damageable.getMaxDamage();
+        int max = resolveMaxDamage(item, damageable);
         if (max <= 0) return;
         int damage = damageable.hasDamageValue() ? damageable.getDamage() : 0;
         int current = max - damage;
@@ -129,11 +139,21 @@ public class EquipmentListener implements Listener {
         if (item == null || item.getType().isAir()) return 1.0;
         ItemMeta meta = item.getItemMeta();
         if (!(meta instanceof Damageable damageable)) return 1.0;
-        if (!damageable.hasMaxDamage()) return 1.0;
-        int max = damageable.getMaxDamage();
+        int max = resolveMaxDamage(item, damageable);
         if (max <= 0) return 1.0;
         int damage = damageable.hasDamageValue() ? damageable.getDamage() : 0;
         return (double) (max - damage) / max;
+    }
+
+    // hasMaxDamage() / getMaxDamage() only reflect an explicit per-instance MAX_DAMAGE
+    // component override. Vanilla tools inherit max durability from their item type and
+    // return false / 0 from those methods. Fall back to the material's type-level value.
+    private int resolveMaxDamage(ItemStack item, Damageable damageable) {
+        if (damageable.hasMaxDamage()) {
+            int max = damageable.getMaxDamage();
+            if (max > 0) return max;
+        }
+        return item.getType().getMaxDurability();
     }
 
     private String getItemDisplayName(ItemStack item) {
